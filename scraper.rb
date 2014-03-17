@@ -16,7 +16,7 @@ def extract_applications_from_page(page)
   links = page.links_with(:href => /SearchApplication.aspx\?id=\d+/)
   links.each do |link|
     app_page = link.click
-    da = {:info_url => app_page.uri.to_s}
+    da = {:info_url => app_page.uri.to_s, :date_scraped => Date.today}
     da[:council_reference] = app_page.search('h1')[1].inner_text.strip.sub(/Reference number: /, "")
     da[:comment_url] = COMMENT_URL
     rows = app_page.search('.detail')
