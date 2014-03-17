@@ -1,5 +1,6 @@
 require 'scraperwiki'
 require 'mechanize'
+require 'date'
 
 agent = Mechanize.new
 
@@ -27,7 +28,7 @@ def extract_applications_from_page(page)
         when /properties/i
           da[:address] = value.at('a').inner_text.strip #site incorrectly repeats the same address
         when /submitted/i
-          da[:date_received] = value.inner_text.strip
+          da[:date_received] = Date.parse(value.inner_text.strip, 'd/m/Y')
         when /description/i
           da[:description] = value.inner_text.strip.sub(/planning permit/i, "")
       end
