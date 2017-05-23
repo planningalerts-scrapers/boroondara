@@ -4,10 +4,19 @@ require 'date'
 
 agent = Mechanize.new
 
+case ENV['MORPH_PERIOD']
+  when 'thismonth'
+    period = 'thismonth'
+  when 'lastmonth'
+    period = 'lastmonth'
+  else
+    period = 'thisweek'
+end
+puts "Getting data in `" + period + "`, changable via MORPH_PERIOD environment"
+
 # Boroondara don't provide a search by date, so we have to use their fetch by
 # last week and this week. Hopefully this is enough for the alerting service
-BASE_URLS = ["http://eservices.boroondara.vic.gov.au/EPlanning/Pages/XC.Track/SearchApplication.aspx?d=lastweek&k=LodgementDate&t=PlnPermit",
-             "http://eservices.boroondara.vic.gov.au/EPlanning/Pages/XC.Track/SearchApplication.aspx?d=thisweek&k=LodgementDate&t=PlnPermit"]
+url = "http://eservices.boroondara.vic.gov.au/EPlanning/Pages/XC.Track/SearchApplication.aspx?d=" + period + "&k=LodgementDate&t=PlnPermit,PlnPostPer"
 
 # A general page (applicable to all applications) for downloading an "objections" form
 COMMENT_URL = "mailto:boroondara@boroondara.vic.gov.au"
@@ -40,25 +49,23 @@ end
 
 applications = []
 
-BASE_URLS.each do |url|
-  page = agent.get(url)
-  form = page.forms.first
-  page = form.submit(form.button_with(:name => /BtnAgree/)) # only needed for the first page
+page = agent.get(url)
+form = page.forms.first
+page = form.submit(form.button_with(:name => /BtnAgree/)) # only needed for the first page
 
-  # get the first page of applications
-  applications += extract_applications_from_page(page)
+# get the first page of applications
+applications += extract_applications_from_page(page)
 
-  # the paging is done via onlick javascript
-  next_links = page.search("//a[@onclick]")
-  next_links.each do |link|
-    # for each onclick we extract the parameters and pass these in a GET request
-    link.to_s.match /'pager','(\d+\|.*)'/
-    link_mod = page.uri.to_s + "&__EVENTTARGET=pager&__EVENTARGUMENT=#{$1}"
-    newpage = agent.get(link_mod)
+# the paging is done via onlick javascript
+next_links = page.search("//a[@onclick]")
+next_links.each do |link|
+  # for each onclick we extract the parameters and pass these in a GET request
+  link.to_s.match /'pager','(\d+\|.*)'/
+  link_mod = page.uri.to_s + "&__EVENTTARGET=pager&__EVENTARGUMENT=#{$1}"
+  newpage = agent.get(link_mod)
 
-    # and extract the applications from the newpage
-    applications+= extract_applications_from_page(newpage)
-  end
+  # and extract the applications from the newpage
+  applications += extract_applications_from_page(newpage)
 end
 
 applications.each do |record|
