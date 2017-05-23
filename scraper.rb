@@ -10,7 +10,7 @@ BASE_URLS = ["http://eservices.boroondara.vic.gov.au/EPlanning/Pages/XC.Track/Se
              "http://eservices.boroondara.vic.gov.au/EPlanning/Pages/XC.Track/SearchApplication.aspx?d=thisweek&k=LodgementDate&t=PlnPermit"]
 
 # A general page (applicable to all applications) for downloading an "objections" form
-COMMENT_URL = "http://boroondara.vic.gov.au/your_council/building-planning/stat-planning/resources/objections"
+COMMENT_URL = "mailto:boroondara@boroondara.vic.gov.au"
 
 def extract_applications_from_page(page)
   applications = []
